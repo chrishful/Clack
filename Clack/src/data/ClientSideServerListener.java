@@ -1,5 +1,7 @@
 package data;
 
+import javafx.application.Platform;
+import javafx.scene.control.Label;
 import main.ClackClient;
 
 /**
@@ -23,10 +25,10 @@ public class ClientSideServerListener implements Runnable{
      */
     @Override
     public void run() {
+
         while(!this.client.getCloseConnection()){
             this.client.receiveData();
             this.client.printData();
         }
-
     }
 }
