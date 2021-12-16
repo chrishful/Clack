@@ -90,7 +90,8 @@ public class ClackClient extends Application {
      * @param args
      */
     public static void main(String[] args) {
-                launch(args);
+                System.out.println("testing commit");
+        launch(args);
     }
 
 
