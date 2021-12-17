@@ -87,7 +87,6 @@ public class ServerSideClientIO implements Runnable{
     public void receiveData(){
         try{
             this.dataToReceiveFromClient = (ClackData)inFromClient.readObject();
-
             System.out.println("Data from client: " + this.dataToReceiveFromClient.getData());
             if(this.dataToReceiveFromClient.getType() == ClackData.CONSTANT_LISTUSERS){
                 this.server.listUsers(this);

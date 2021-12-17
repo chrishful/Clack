@@ -1,5 +1,7 @@
 package data;
 
+import java.awt.image.BufferedImage;
+import java.nio.Buffer;
 import java.util.Date;
 import java.lang.*;
 import java.io.Serializable;
@@ -16,6 +18,8 @@ abstract public class ClackData implements Serializable {
     public static final int CONSTANT_LOGOUT = 1;
     public static final int CONSTANT_SENDMESSAGE = 2;
     public static final int CONSTANT_SENDFILE = 3;
+    public static final int CONSTANT_SENDIMG = 4;
+
 
     /**
      * This ClackData constructor initializes the user name and type with
@@ -86,6 +90,7 @@ abstract public class ClackData implements Serializable {
      * @return A string describing an object's data
      */
     abstract public String getData();
+
 
     /**
      * A method for encrypting a key

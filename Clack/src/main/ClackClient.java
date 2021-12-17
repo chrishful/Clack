@@ -1,16 +1,16 @@
 package main;
 import java.awt.event.KeyListener;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.*;
 import java.net.*;
-import java.util.InputMismatchException;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Scanner;
+import java.nio.Buffer;
+import java.util.*;
 
 import data.*;
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.embed.swing.SwingFXUtils;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.event.EventHandler;
@@ -35,6 +35,7 @@ import javafx.scene.paint.Paint;
 import javafx.scene.text.TextAlignment;
 import javafx.stage.Stage;
 
+import javax.imageio.ImageIO;
 import javax.xml.soap.Text;
 
 
@@ -67,7 +68,7 @@ public class ClackClient extends Application {
     private TextArea displayUsers = new TextArea();
     private final Button ISDONE = new Button("Exit");
     private ImageView fileImage = new ImageView(new Image("/main/img/txt.png", 50, 50, true, true));
-    private ImageView media1Image = new ImageView(new Image("/main/img/file.png", 50, 50, true, true));
+    private ImageView imageImage = new ImageView(new Image("/main/img/image.png", 50, 50, true, true));
     private ImageView media2Image = new ImageView(new Image("/main/img/file.png", 50, 50, true, true));
 
 
@@ -90,7 +91,6 @@ public class ClackClient extends Application {
      * @param args
      */
     public static void main(String[] args) {
-                System.out.println("testing commit");
         launch(args);
     }
 
@@ -151,6 +151,11 @@ public class ClackClient extends Application {
     public ClackClient() {
     this("anon");
 }
+
+    /**
+     * Launches an interface for ClackClient using javafx
+     * @param primaryStage Stage where the scene is to be shown
+     */
     public void start(Stage primaryStage) {
         List<String> s;
         s = getParameters().getUnnamed();
@@ -181,7 +186,7 @@ public class ClackClient extends Application {
         }
 
         AnchorPane root = new AnchorPane();
-        root.getChildren().addAll(sendButton, userInput, messages, ISDONE, fileImage, media1Image, media2Image, displayUsers);
+        root.getChildren().addAll(sendButton, userInput, messages, ISDONE, fileImage, imageImage, media2Image, displayUsers);
         AnchorPane.setBottomAnchor(userInput, 15.0);
         AnchorPane.setLeftAnchor(userInput, 50.0);
         userInput.setMinWidth(370);
@@ -210,8 +215,8 @@ public class ClackClient extends Application {
 
 
 
-        AnchorPane.setLeftAnchor(media1Image, 50.0);
-        AnchorPane.setBottomAnchor(media1Image, 150.0);
+        AnchorPane.setLeftAnchor(imageImage, 50.0);
+        AnchorPane.setBottomAnchor(imageImage, 150.0);
 
         AnchorPane.setLeftAnchor(media2Image, 50.0);
         AnchorPane.setBottomAnchor(media2Image, 225.0);
@@ -252,14 +257,24 @@ public class ClackClient extends Application {
                 public void handle(Event event) {
                     TextInputDialog a = new TextInputDialog();
                     a.setContentText("Enter File Name");
-                    a.showAndWait();
+                    Optional<String> result = a.showAndWait();
                     a.getEditor().getText();
+                    if (result.isPresent())
                     sendFile(a.getEditor().getText());
                 }
             });
+            imageImage.setOnMouseClicked(new EventHandler() {
+                @Override
+                public void handle(Event event) {
+                    TextInputDialog a = new TextInputDialog();
+                    a.setContentText("Enter Image File");
+                    Optional<String> result =  a.showAndWait();
+                    a.getEditor().getText();
+                    if (result.isPresent())
+                    sendImg(a.getEditor().getText());
+                }
+            });
 
-
-//
         } catch (IOException ioe){ System.err.println("Issue with IO.");
         }
         sendButton.setOnAction(new EventHandler<ActionEvent>() {
@@ -281,14 +296,12 @@ public class ClackClient extends Application {
                 sendButton.fire();
                 event.consume();
             }
-
         });
 
         Scene scene = new Scene(root, 500, 600);
         scene.getStylesheets().add( getClass().getResource("style.css").toExternalForm());
         primaryStage.setScene(scene);
         primaryStage.show();
-
     }
 
 
@@ -361,6 +374,11 @@ public class ClackClient extends Application {
 
     }
 
+    /**
+     * Sends a file over the network
+     *
+     * @param filename the file name of the file being sent.
+     */
     public void sendFile(String filename){
             filename = filename.replace("SENDFILE", "").replace(" ", "");
             try{
@@ -373,13 +391,28 @@ public class ClackClient extends Application {
             }catch(IOException ioe){System.err.println(ioe.getMessage());};
     }
 
+    /**
+     * sends an image over the network, either png or jpg
+     * @param filename must be .png or .jpg.
+     */
+    public void sendImg(String filename){
+        try{if(filename.endsWith(".png") || filename.endsWith(".jpg")){
+            this.dataToSendToServer = new ImageClackData(this.userName, filename, ClackData.CONSTANT_SENDIMG);
+            ((ImageClackData)this.dataToSendToServer).readImg();
+            this.sendData();}
+        }catch(FileNotFoundException fnfe){
+            this.dataToSendToServer = null;
+            System.err.println("The file: " + filename +  " is not available: " + fnfe.getMessage());
+        }catch(IOException ioe){System.err.println(ioe.getMessage());};
+    }
 
     /**
      * Sends data to the server.
      */
     public void sendData(){
         try {
-            outToServer.writeObject(this.dataToSendToServer);
+             outToServer.writeObject(this.dataToSendToServer);
+             outToServer.flush();
         } catch (IOException ioe){System.err.println("Error writing data to server.");}
     }
 
@@ -388,8 +421,9 @@ public class ClackClient extends Application {
      */
     public void receiveData(){
        try {
-        this.dataToReceiveFromServer =  (ClackData)inFromServer.readObject();
-        } catch (IOException ioe){System.err.println("Error recieving data from server.");
+               this.dataToReceiveFromServer =  (ClackData)inFromServer.readObject();
+
+       } catch (IOException ioe){System.err.println("Error recieving data from server.");
         } catch (ClassNotFoundException cnfe){System.err.println("Class not found");}
     }
     /**
@@ -403,6 +437,9 @@ public class ClackClient extends Application {
                 addMessage(dataToReceiveFromServer.getUserName(), this.dataToReceiveFromServer.getData());
             if(this.dataToReceiveFromServer.getType() == ClackData.CONSTANT_SENDFILE)
                 addFileContents(dataToReceiveFromServer.getUserName(), this.dataToReceiveFromServer.getData());
+            if(this.dataToReceiveFromServer.getType() == ClackData.CONSTANT_SENDIMG) {
+                addImage(dataToReceiveFromServer.getUserName(), ((ImageClackData) this.dataToReceiveFromServer).getImage());
+            }
             if(this.dataToReceiveFromServer.getType() == ClackData.CONSTANT_LOGOUT){};
         }else
             System.out.println("Data from server is null");
@@ -449,6 +486,23 @@ public class ClackClient extends Application {
     }
 
     /**
+     * adds an Image to the chat
+     * @param userName user sending the image
+     * @param image BufferedImage that is to be posted
+     */
+    private void addImage(String userName, BufferedImage image){
+        Platform.runLater(new Runnable() {
+            @Override
+            public void run() {
+                ImageView i = new ImageView(SwingFXUtils.toFXImage(image, null));
+                i.setFitWidth(270);
+                i.setPreserveRatio(true);
+                 messagesInner.getChildren().add(i);
+            }
+        });
+    }
+
+    /**
      * function that updates the list of users
      * @param s a string representing the entire list of users.
      */
@@ -460,27 +514,19 @@ public class ClackClient extends Application {
             }
         });
     }
-
-
     /**
      * function that exits a Client
      */
-
     private void exit(){
-
         this.dataToSendToServer = new MessageClackData(this.userName, (String)"DONE", ClackData.CONSTANT_LOGOUT);
         this.sendData();
 
         try {
-                  this.serverConnect.close();
-
+            this.serverConnect.close();
             this.inFromStd.close();
-
             this.outToServer.close();
             this.closeConnection = true;
-
             this.inFromServer.close();
-
         }catch(IOException ioe){System.err.println("Issue with IO");}
                  Platform.exit();
     }
