@@ -165,4 +165,6 @@ unsure of how to fix.
 All in all, the text works (either the send button or just press enter), press the bottom text image to
 send a .txt file, and press the middle image to send a .png file. List users only shows once
 you post something, I'm not sure why it does that.
+I was unable to implement both media types as my partner abandoned me, but I tried as hard as I could
+to get at least one done.
 I plan on, over break, fixing the gui to look nicer and to implement an audio message as well.
