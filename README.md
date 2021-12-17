@@ -157,12 +157,12 @@ All tests were screenshotted and put into the Clack/src/test/Part4-images folder
 
 I implemented the interface using the classes already given to me, tweaking as needed.
 I was unable to complete both media objects as my teammate abandoned me, and I had to do this alone,
-however I did manage to implement an image being sent (either .jpg or .png).
+however I did manage to implement an image being sent ( .png).
 I was really happy with the methods I found/used to get this application running, however when I exit a program
 the terminal does spit out a couple exceptions before quitting, which I was unable to fix.
 Also, if the server is closed, the client is sent into an infinite loop, which is not good, but I was
 unsure of how to fix.
 All in all, the text works (either the send button or just press enter), press the bottom text image to
-send a .txt file, and press the middle image to send a .jpg or .png file. List users only shows once
+send a .txt file, and press the middle image to send a .png file. List users only shows once
 you post something, I'm not sure why it does that.
 I plan on, over break, fixing the gui to look nicer and to implement an audio message as well.
